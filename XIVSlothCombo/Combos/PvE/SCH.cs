@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using XIVSlothCombo.Combos.PvE.Content;
 using XIVSlothCombo.CustomComboNS;
 using XIVSlothCombo.CustomComboNS.Functions;
+using XIVSlothCombo.Combos.JobHelpers;
 
 namespace XIVSlothCombo.Combos.PvE
 {
@@ -309,7 +310,7 @@ namespace XIVSlothCombo.Combos.PvE
         internal class SCH_DPS : CustomCombo
         {
             protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.SCH_DPS;
-
+            internal static SCHOpenerLogic SCHOpener = new();
             internal OpenerState openerState = OpenerState.PreOpener;
 
             protected override uint Invoke(uint actionID, uint lastComboMove, float comboTime, byte level)
@@ -327,23 +328,27 @@ namespace XIVSlothCombo.Combos.PvE
 
                 if (ActionFound)
                 {
+                    // Opener for PCT
+                    if (SCHOpener.DoFullOpener(ref actionID, false))
+                        return actionID;
 
                     var incombat = HasCondition(Dalamud.Game.ClientState.Conditions.ConditionFlag.InCombat);
-                    if (!incombat)
-                    {
-                        openerState = OpenerState.PreOpener;
-                    }
-                    else if (Gauge.HasAetherflow())
-                    {
-                        openerState = OpenerState.PostOpener;
-                    }
-                    else if (IsEnabled(CustomComboPreset.SCH_DPS_Dissipation_Opener) && (openerState != OpenerState.PostOpener))
-                    {
-                        openerState = OpenerState.InOpener;
-                    }
+                    //if (!incombat)
+                    //{
+                    //    openerState = OpenerState.PreOpener;
+                    //}
+                    //else if (Gauge.HasAetherflow())
+                    //{
+                    //    openerState = OpenerState.PostOpener;
+                    //}
+                    //else if (IsEnabled(CustomComboPreset.SCH_DPS_Dissipation_Opener) && (openerState != OpenerState.PostOpener))
+                    //{
+                    //    openerState = OpenerState.InOpener;
+                    //}
+ 
 
-                    if (IsEnabled(CustomComboPreset.SCH_DPS_Variant_Rampart) && 
-                        IsEnabled(Variant.VariantRampart) && 
+                    if (IsEnabled(CustomComboPreset.SCH_DPS_Variant_Rampart) &&
+                        IsEnabled(Variant.VariantRampart) &&
                         IsOffCooldown(Variant.VariantRampart) &&
                         CanSpellWeave(actionID))
                         return Variant.VariantRampart;
@@ -397,10 +402,10 @@ namespace XIVSlothCombo.Combos.PvE
                                 HasEffect(Buffs.ImpactImminent) &&
                                 InCombat() &&
                                 CanSpellWeave(actionID))
-                                return BanefulImpaction; 
+                                return BanefulImpaction;
                             // Don't use OriginalHook(ChainStratagem), because player can disable ingame action replacement
                         }
-                        
+
 
                         //Bio/Biolysis
                         if (IsEnabled(CustomComboPreset.SCH_DPS_Bio) && LevelChecked(Bio) && InCombat())
@@ -410,8 +415,8 @@ namespace XIVSlothCombo.Combos.PvE
                             Status? sustainedDamage = FindTargetEffect(Variant.Debuffs.SustainedDamage);
                             float refreshtimer = Config.SCH_ST_DPS_Bio_Adv ? Config.SCH_ST_DPS_Bio_Threshold : 3;
 
-                            if (IsEnabled(CustomComboPreset.SCH_DPS_Variant_SpiritDart) && 
-                                IsEnabled(Variant.VariantSpiritDart) && 
+                            if (IsEnabled(CustomComboPreset.SCH_DPS_Variant_SpiritDart) &&
+                                IsEnabled(Variant.VariantSpiritDart) &&
                                 (sustainedDamage is null || sustainedDamage?.RemainingTime <= 3) &&
                                 CanSpellWeave(actionID))
                                 return Variant.VariantSpiritDart;
@@ -423,8 +428,8 @@ namespace XIVSlothCombo.Combos.PvE
 
                         //Ruin 2 Movement 
                         if (IsEnabled(CustomComboPreset.SCH_DPS_Ruin2Movement) &&
-                            LevelChecked(Ruin2) &&
-                            IsMoving) return OriginalHook(Ruin2);
+                        LevelChecked(Ruin2) &&
+                        IsMoving) return OriginalHook(Ruin2);
                     }
                 }
                 return actionID;

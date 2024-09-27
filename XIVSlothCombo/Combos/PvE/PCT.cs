@@ -1,7 +1,9 @@
 ﻿using Dalamud.Game.ClientState.JobGauge.Types;
+using XIVSlothCombo.Combos.JobHelpers;
 using XIVSlothCombo.CustomComboNS;
 using XIVSlothCombo.CustomComboNS.Functions;
 using XIVSlothCombo.Extensions;
+using static XIVSlothCombo.Combos.PvE.PCT;
 
 namespace XIVSlothCombo.Combos.PvE
 {
@@ -12,31 +14,54 @@ namespace XIVSlothCombo.Combos.PvE
         public const uint
             BlizzardinCyan = 34653,
             BlizzardIIinCyan = 34659,
-            ClawMotif = 34666,
-            ClawedMuse = 34672,
+
             CometinBlack = 34663,
-            CreatureMotif = 34689,
+
             FireInRed = 34650,
             FireIIinRed = 34656,
-            HammerStamp = 34678,
+
             HolyInWhite = 34662,
-            LandscapeMotif = 34691,
-            LivingMuse = 35347,
-            MawMotif = 34667,
+
             MogoftheAges = 34676,
+
+            RainbowDrip = 34688,
+
+            RetributionoftheMadeen = 34677,
+
+            Smudge = 34684,
+
+            StarPrism = 34681,
+
+            SubtractivePalette = 34683,
+
+            ThunderinMagenta = 34655,
+            ThunderIIinMagenta = 34661,
+
+            StoneinYellow = 34654,
+            StoneIIinYellow = 34660,
+
+            WaterinBlue = 34652,
+
+            //weapon
+            SteelMuse = 35348,
+            WeaponMotif = 34690,
+            StrikingMuse = 34674,
+            HammerStamp = 34678,
+            HammerBrush = 34679,
+            PolishingHammer = 34680,
+            //landscape
+            LandscapeMotif = 34691,
+            StarryMuse = 34675,
+            LivingMuse = 35347,
+            ScenicMuse = 35349,
+            //creature
+            CreatureMotif = 34689,
+            MawMotif = 34667,
+            ClawMotif = 34666,
+            ClawedMuse = 34672,
             PomMotif = 34664,
             PomMuse = 34670,
-            RainbowDrip = 34688,
-            RetributionoftheMadeen = 34677,
-            ScenicMuse = 35349,
-            Smudge = 34684,
-            StarPrism = 34681,
-            SteelMuse = 35348,
-            SubtractivePalette = 34683,
-            ThunderIIinMagenta = 34661,
-            ThunderinMagenta = 34655,
-            WaterinBlue = 34652,
-            WeaponMotif = 34690,
+            WingedMuse = 34671,
             WingMotif = 34665;
 
         public static class Buffs
@@ -61,7 +86,8 @@ namespace XIVSlothCombo.Combos.PvE
         public static class Config
         {
             public static UserInt
-                CombinedAetherhueChoices = new("CombinedAetherhueChoices");
+                CombinedAetherhueChoices = new("CombinedAetherhueChoices"),
+                PCT_Advanced_OpenerSelection = new("PCT_Advanced_OpenerSelection");
 
             public static UserBool
                 CombinedMotifsMog = new("CombinedMotifsMog"),
@@ -73,6 +99,7 @@ namespace XIVSlothCombo.Combos.PvE
         internal class PCT_ST_SimpleMode : CustomCombo
         {
             protected internal override CustomComboPreset Preset { get; } = CustomComboPreset.PCT_ST_SimpleMode;
+            internal static PCTOpenerLogic PCTOpener = new();
 
             protected override uint Invoke(uint actionID, uint lastComboActionID, float comboTime, byte level)
             {
@@ -81,11 +108,18 @@ namespace XIVSlothCombo.Combos.PvE
                     var gauge = GetJobGauge<PCTGauge>();
                     bool canWeave = HasEffect(Buffs.SubtractivePalette) ? CanSpellWeave(OriginalHook(BlizzardinCyan)) : CanSpellWeave(OriginalHook(FireInRed));
 
+                    // Opener for PCT
+                    if (PCTOpener.DoFullOpener(ref actionID, false))
+                        return actionID;
+
                     if (HasEffect(Buffs.Starstruck))
                         return OriginalHook(StarPrism);
 
                     if (HasEffect(Buffs.RainbowBright))
                         return OriginalHook(RainbowDrip);
+
+                    if (gauge.Paint > 4 && !HasEffect(Buffs.MonochromeTones))
+                        return OriginalHook(HolyInWhite);
 
                     if (IsMoving)
                     {
@@ -95,6 +129,24 @@ namespace XIVSlothCombo.Combos.PvE
                                 return OriginalHook(CometinBlack);
 
                             return OriginalHook(HolyInWhite);
+                        }
+
+                        if (IsOffCooldown(All.Swiftcast))
+                            return All.Swiftcast;
+
+                        if (HasEffect(All.Buffs.Swiftcast)) 
+                        {
+                            if (LandscapeMotif.LevelChecked() && !gauge.LandscapeMotifDrawn)
+                                return OriginalHook(LandscapeMotif);
+
+                            if (WeaponMotif.LevelChecked() && !gauge.WeaponMotifDrawn)
+                                return OriginalHook(WeaponMotif);
+
+                            if (CreatureMotif.LevelChecked() && !gauge.CreatureMotifDrawn)
+                                return OriginalHook(CreatureMotif);
+
+                            if (HasEffect(Buffs.SubtractivePalette))
+                                return OriginalHook(BlizzardinCyan);
                         }
                     }
 
@@ -152,6 +204,7 @@ namespace XIVSlothCombo.Combos.PvE
                             return OriginalHook(WeaponMotif);
 
                     }
+
                     if (gauge.Paint > 0 && HasEffect(Buffs.MonochromeTones))
                         return OriginalHook(CometinBlack);
 

@@ -1,6 +1,8 @@
 using Dalamud.Game.ClientState.JobGauge.Types;
 using Dalamud.Game.ClientState.Statuses;
+using Dalamud.Interface.FontIdentifier;
 using System.Collections.Generic;
+using System.Diagnostics;
 using XIVSlothCombo.Combos.JobHelpers;
 using XIVSlothCombo.Combos.PvE.Content;
 using XIVSlothCombo.CustomComboNS;
@@ -16,33 +18,40 @@ namespace XIVSlothCombo.Combos.PvE
 
         public const uint
             Fire = 141,
-            Blizzard = 142,
-            Thunder = 144,
             Fire2 = 147,
-            Transpose = 149,
             Fire3 = 152,
-            Thunder3 = 153,
+            Fire4 = 3577,
+            HighFire2 = 25794,
+
+            Blizzard = 142,
+            Blizzard2 = 25793,
             Blizzard3 = 154,
+            Blizzard4 = 3576,
+            HighBlizzard2 = 25795,
+
+            Thunder = 144,
+            Thunder2 = 7447,
+            Thunder3 = 153,
+            Thunder4 = 7420,
+            HighThunder = 36986,
+            HighThunder2 = 36987,
+
+            FlareStar = 36989,
+
+            Transpose = 149,
             AetherialManipulation = 155,
             Scathe = 156,
             Manafont = 158,
-            Freeze = 159,
             Flare = 162,
+            Freeze = 159,
             LeyLines = 3573,
             Sharpcast = 3574,
-            Blizzard4 = 3576,
-            Fire4 = 3577,
             BetweenTheLines = 7419,
-            Thunder4 = 7420,
             Triplecast = 7421,
             Foul = 7422,
-            Thunder2 = 7447,
             Despair = 16505,
             UmbralSoul = 16506,
             Xenoglossy = 16507,
-            Blizzard2 = 25793,
-            HighFire2 = 25794,
-            HighBlizzard2 = 25795,
             Amplifier = 25796,
             Paradox = 25797;
 
@@ -50,6 +59,7 @@ namespace XIVSlothCombo.Combos.PvE
         {
             public const ushort
                 Thundercloud = 164,
+                Thunderhead = 3870,
                 Firestarter = 165,
                 LeyLines = 737,
                 CircleOfPower = 738,
@@ -64,7 +74,9 @@ namespace XIVSlothCombo.Combos.PvE
                 Thunder = 161,
                 Thunder2 = 162,
                 Thunder3 = 163,
-                Thunder4 = 1210;
+                Thunder4 = 1210,
+                HighThunder = 3871,
+                HighThunder2 = 3872;
         }
 
         public static class Traits
@@ -101,7 +113,9 @@ namespace XIVSlothCombo.Combos.PvE
                 { Thunder,  Debuffs.Thunder  },
                 { Thunder2, Debuffs.Thunder2 },
                 { Thunder3, Debuffs.Thunder3 },
-                { Thunder4, Debuffs.Thunder4 }
+                { Thunder4, Debuffs.Thunder4 },
+                { HighThunder, Debuffs.HighThunder },
+                { HighThunder2, Debuffs.HighThunder2 }
             };
 
         public static class Config
@@ -201,8 +215,7 @@ namespace XIVSlothCombo.Combos.PvE
                         }
 
                         // Thunder I/III uptime
-                        if (!ThunderList.ContainsKey(lastComboMove) &&
-                            (currentMP >= MP.ThunderST || (HasEffect(Buffs.Sharpcast) && HasEffect(Buffs.Thundercloud))))
+                        if (!ThunderList.ContainsKey(lastComboMove) && (currentMP >= MP.ThunderST || HasEffect(Buffs.Thundercloud)) && InCombat())
                         {
                             if (LevelChecked(Thunder3) &&
                                 GetDebuffRemainingTime(Debuffs.Thunder3) <= 4)
@@ -385,7 +398,7 @@ namespace XIVSlothCombo.Combos.PvE
 
                     //Thundercloud Spender
                     if (IsEnabled(CustomComboPreset.BLM_ST_Adv_Thunder_ThunderCloud) &&
-                        HasEffect(Buffs.Thundercloud) &&
+                        HasEffect(Buffs.Thunderhead) &&
                         ((CanSpellWeave(actionID) && Config.BLM_Adv_ThunderCloud == 0) || Config.BLM_Adv_ThunderCloud == 1))
                         return OriginalHook(Thunder);
 
@@ -416,12 +429,14 @@ namespace XIVSlothCombo.Combos.PvE
                         // Handle movement
                         if (IsEnabled(CustomComboPreset.BLM_Adv_Movement) && IsMoving && InCombat())
                         {
-                            if (Config.BLM_Adv_Movement_Choice[0] &&
-                                !HasEffect(Buffs.Sharpcast) && ActionReady(Sharpcast))
-                                return Sharpcast;
+                            if (Config.BLM_Adv_Movement_Choice[0] && ActionReady(All.Swiftcast) && gauge.AstralSoulStacks == 6)
+                                return All.Swiftcast;
+
+                            if (level == 100 && gauge.AstralSoulStacks == 6 && HasEffect(All.Buffs.Swiftcast))
+                                return FlareStar;
 
                             if (Config.BLM_Adv_Movement_Choice[1] &&
-                                HasEffect(Buffs.Thundercloud) && HasEffect(Buffs.Sharpcast) &&
+                                HasEffect(Buffs.Thundercloud) &&
                                 (dotDebuff is null || dotDebuff?.RemainingTime <= 10))
                                 return OriginalHook(Thunder);
 
@@ -463,10 +478,10 @@ namespace XIVSlothCombo.Combos.PvE
                         }
 
                         // Sharpcast
-                        if (Config.BLM_Adv_Cooldowns_Choice[1] &&
-                            ActionReady(Sharpcast) && !HasEffect(Buffs.Sharpcast) &&
-                            !WasLastAction(Thunder3) && CanSpellWeave(actionID))
-                            return Sharpcast;
+                        //if (Config.BLM_Adv_Cooldowns_Choice[1] &&
+                        //    ActionReady(Sharpcast) && !HasEffect(Buffs.Sharpcast) &&
+                        //    !WasLastAction(Thunder3) && CanSpellWeave(actionID))
+                        //    return Sharpcast;
 
                         // Use Triplecast only with Astral Fire/Umbral Hearts, and we have enough MP to cast Fire IV twice
                         if (IsEnabled(CustomComboPreset.BLM_Adv_Casts) &&
@@ -488,13 +503,11 @@ namespace XIVSlothCombo.Combos.PvE
                         }
 
                         // Thunder I/III uptime
-                        if (IsEnabled(CustomComboPreset.BLM_ST_Adv_Thunder) &&
-                            !ThunderList.ContainsKey(lastComboMove) &&
-                            (currentMP >= MP.ThunderST || (HasEffect(Buffs.Sharpcast) && HasEffect(Buffs.Thundercloud))))
+                        if (IsEnabled(CustomComboPreset.BLM_ST_Adv_Thunder))  
                         {
-                            if (LevelChecked(Thunder) &&
-                                (dotDebuff is null || dotDebuff.RemainingTime <= thunderRefreshTime) && GetTargetHPPercent() > ThunderHP)
-                                return OriginalHook(Thunder);
+                            if (!ThunderList.ContainsKey(lastComboMove) && HasEffect(Buffs.Thunderhead) && InCombat())
+                                if (LevelChecked(Thunder) && (dotDebuff is null || dotDebuff.RemainingTime <= thunderRefreshTime) && GetTargetHPPercent() > ThunderHP)
+                                    return OriginalHook(Thunder);
                         }
                     }
 
@@ -566,8 +579,8 @@ namespace XIVSlothCombo.Combos.PvE
                             return Fire3;
 
                         // Spend Sharpcast on Thunder before using Fire
-                        if (gauge.ElementTimeRemaining <= (astralFireRefresh + 3000) && !HasEffect(Buffs.Thundercloud) && HasEffect(Buffs.Sharpcast) && currentMP >= MP.FireI && IsEnabled(CustomComboPreset.BLM_ST_Adv_Thunder))
-                            return OriginalHook(Thunder);
+                        //if (gauge.ElementTimeRemaining <= (astralFireRefresh + 3000) && !HasEffect(Buffs.Thundercloud) && HasEffect(Buffs.Sharpcast) && currentMP >= MP.FireI && IsEnabled(CustomComboPreset.BLM_ST_Adv_Thunder))
+                        //   return OriginalHook(Thunder);
 
                         // Use Paradox instead of hardcasting Fire if we can
                         if (gauge.ElementTimeRemaining <= astralFireRefresh && !HasEffect(Buffs.Firestarter) && currentMP >= MP.FireI)
@@ -578,9 +591,16 @@ namespace XIVSlothCombo.Combos.PvE
                             ActionReady(Manafont) && WasLastAction(Despair))
                             return Manafont;
 
+                        // Cast Flare Star (lv100)
+                        if (gauge.AstralSoulStacks == 6)
+                            if (gauge.ElementTimeRemaining <= 6000 && currentMP >= MP.FireI)
+                                return OriginalHook(Fire);
+                            else if (gauge.ElementTimeRemaining >= 6000)
+                                return FlareStar;
+
                         // Cast Fire IV after Manafont
-                        if (IsOnCooldown(Manafont) && WasLastAction(Manafont))
-                            return Fire4;
+                        if (IsOnCooldown(Manafont) && WasLastAction(Manafont) && gauge.AstralSoulStacks < 6)
+                            return Fire4;   
 
                         // Transpose rotation Fire phase
                         if (rotationSelection is 1 && level >= 90 &&
@@ -595,13 +615,19 @@ namespace XIVSlothCombo.Combos.PvE
                         }
 
                         // Blizzard III/Despair when below Fire IV + Despair MP
-                        if (currentMP < MP.FireI || gauge.ElementTimeRemaining <= 5000)
+                        if (currentMP < MP.FireI || gauge.ElementTimeRemaining <= 6000)
                         {
                             if (currentMP >= MP.FireI)
                                 return OriginalHook(Fire);
 
                             if (currentMP < MP.FireI && currentMP >= MP.AllMPSpells && LevelChecked(Despair))
-                                return Despair;
+                                if (ActionReady(All.Swiftcast) && gauge.ElementTimeRemaining <= 6000)
+                                    return All.Swiftcast;
+                                else
+                                    return Despair;
+
+                            if (!IsOnCooldown(Manafont))
+                                return Manafont;
 
                             return Blizzard3;
                         }
@@ -647,6 +673,9 @@ namespace XIVSlothCombo.Combos.PvE
                         // Use Paradox when available
                         if (LevelChecked(Paradox) && gauge.IsParadoxActive && gauge.UmbralHearts is 3 && currentMP == MP.MaxMP)
                             return Paradox;
+
+                        if (WasLastAction(Blizzard4) && gauge.UmbralHearts is 3)
+                            return Fire3;
 
                         // Fire III when at max Umbral Hearts
                         return (gauge.UmbralHearts is 3 && currentMP == MP.MaxMP)
@@ -723,8 +752,13 @@ namespace XIVSlothCombo.Combos.PvE
                         if (currentMP >= MP.AllMPSpells)
                         {
                             // Thunder II/IV uptime
-                            if (!ThunderList.ContainsKey(lastComboMove) && currentMP >= MP.ThunderAoE)
+                            if (!ThunderList.ContainsKey(lastComboMove) && HasEffect(Buffs.Thunderhead))
                             {
+
+                                if (LevelChecked(HighThunder2) &&
+                                    GetDebuffRemainingTime(Debuffs.HighThunder2) <= 4)
+                                    return HighThunder2;
+
                                 if (LevelChecked(Thunder4) &&
                                     GetDebuffRemainingTime(Debuffs.Thunder4) <= 4)
                                     return Thunder4;
@@ -755,8 +789,12 @@ namespace XIVSlothCombo.Combos.PvE
                             return Freeze;
 
                         // Thunder II/IV uptime
-                        if (!ThunderList.ContainsKey(lastComboMove) && currentMP >= MP.ThunderAoE)
+                        if (!ThunderList.ContainsKey(lastComboMove) && HasEffect(Buffs.Thunderhead))
                         {
+                            if (LevelChecked(HighThunder2) &&
+                                GetDebuffRemainingTime(Debuffs.HighThunder2) <= 4)
+                                return HighThunder2;
+
                             if (LevelChecked(Thunder4) &&
                                 GetDebuffRemainingTime(Debuffs.Thunder4) <= 4)
                                 return Thunder4;
@@ -873,8 +911,16 @@ namespace XIVSlothCombo.Combos.PvE
                         {
                             // Thunder II/IV uptime
                             if (IsEnabled(CustomComboPreset.BLM_AoE_Adv_ThunderUptime_AstralFire) &&
-                                !ThunderList.ContainsKey(lastComboMove) && currentMP >= MP.ThunderAoE)
+                                !ThunderList.ContainsKey(lastComboMove) && HasEffect(Buffs.Thunderhead))
                             {
+                                if (LevelChecked(HighThunder2) &&
+                                    GetDebuffRemainingTime(Debuffs.HighThunder2) <= 4)
+                                    return HighThunder2;
+
+                                if (LevelChecked(Thunder4) &&
+                                    (GetDebuffRemainingTime(Debuffs.Thunder4) <= thunderRefreshTime))
+                                    return Thunder4;
+
                                 if (LevelChecked(Thunder4) &&
                                      (GetDebuffRemainingTime(Debuffs.Thunder4) <= thunderRefreshTime))
                                     return Thunder4;
@@ -915,8 +961,12 @@ namespace XIVSlothCombo.Combos.PvE
 
                         // Thunder II/IV uptime
                         if (IsEnabled(CustomComboPreset.BLM_AoE_Adv_ThunderUptime) &&
-                           !ThunderList.ContainsKey(lastComboMove) && currentMP >= MP.ThunderAoE)
+                           !ThunderList.ContainsKey(lastComboMove) && HasEffect(Buffs.Thunderhead))
                         {
+                            if (LevelChecked(HighThunder2) &&
+                                GetDebuffRemainingTime(Debuffs.HighThunder2) <= 4)
+                                return HighThunder2;
+
                             if (LevelChecked(Thunder4) &&
                                 (GetDebuffRemainingTime(Debuffs.Thunder4) <= thunderRefreshTime) && GetTargetHPPercent() > ThunderHP)
                                 return Thunder4;

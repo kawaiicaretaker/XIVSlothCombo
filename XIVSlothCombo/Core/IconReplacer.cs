@@ -71,6 +71,9 @@ namespace XIVSlothCombo.Core
                 float comboTime = ActionManager.Instance()->Combo.Timer;
                 byte level = Service.ClientState.LocalPlayer?.Level ?? 0;
 
+                //Service.ChatGui.PrintError($"Features cannot be toggled in combat.{lastComboMove}");
+
+
                 foreach (CustomCombo? combo in customCombos)
                 {
                     if (combo.TryInvoke(actionID, level, lastComboMove, comboTime, out uint newActionID))

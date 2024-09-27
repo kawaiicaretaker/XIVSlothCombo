@@ -27,6 +27,7 @@ using Dalamud.Interface.Windowing;
 using Dalamud.Game.Addon.Lifecycle;
 using ECommons.DalamudServices;
 using Dalamud.Game.Addon.Lifecycle.AddonArgTypes;
+using ECommons.Hooks.ActionEffectTypes;
 
 namespace XIVSlothCombo
 {
@@ -49,7 +50,7 @@ namespace XIVSlothCombo
         {
             //ADV.JobID,
             //AST.JobID,
-            BLM.JobID,
+            //BLM.JobID,
             //BLU.JobID,
             //BRD.JobID,
             DNC.JobID,
@@ -59,12 +60,12 @@ namespace XIVSlothCombo
             //GNB.JobID,
             //MCH.JobID,
             MNK.JobID,
-            NIN.JobID,
+            //NIN.JobID,
             //PCT.JobID,
             //PLD.JobID,
             //RDM.JobID,
             //RPR.JobID,
-            SAM.JobID,
+            //SAM.JobID,
             //SCH.JobID,
             //SGE.JobID,
             //SMN.JobID,
@@ -473,6 +474,11 @@ namespace XIVSlothCombo
                             file.WriteLine($"Current Zone: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.TerritoryType>()?.FirstOrDefault(x => x.RowId == Service.ClientState.TerritoryType).PlaceName.Value.Name}");   // Current zone location
                             file.WriteLine($"Current Party Size: {Service.PartyList.Length}");                                  // Current party size
                             file.WriteLine("");
+                            file.WriteLine($"ID: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.FirstOrDefault(x => x.RowId == 3872).Name.ToString()}");
+                            file.WriteLine($"name: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Status>()?.FirstOrDefault(x => x.Name == "Thunderhead").RowId.ToString()}");
+                            file.WriteLine($"Name: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.FirstOrDefault(x => x.RowId == 36989).Name.ToString()}");
+                            file.WriteLine($"ID: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.FirstOrDefault(x => x.Name == "Hammer Brush").RowId.ToString()}");
+                            file.WriteLine($"ID: {Service.DataManager.GetExcelSheet<Lumina.Excel.GeneratedSheets.Action>()?.FirstOrDefault(x => x.Name == "Polishing Hammer").RowId.ToString()}");
                             file.WriteLine($"START ENABLED FEATURES");
 
                             int i = 0;

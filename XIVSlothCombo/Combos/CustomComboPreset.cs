@@ -2267,6 +2267,10 @@ namespace XIVSlothCombo.Combos
         [CustomComboInfo("One Button Paint", "Combines paint consuming actions into one button.", PCT.JobID)]
         CombinedPaint = 20004,
 
+        [CustomComboInfo("Opener Option", "Adds the Lv.100 opener." +
+            "\nWill default to the Standard opener when nothing is selected.", PCT.JobID, -10, "", "")]
+        PCT_Adv_Opener = 20005,
+
         #endregion
 
         #region PALADIN

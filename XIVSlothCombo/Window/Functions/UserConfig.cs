@@ -1728,6 +1728,12 @@ namespace XIVSlothCombo.Window.Functions
                 UserConfig.DrawAdditionalBoolChoice(PCT.Config.CombinedMotifsWeapon, $"{PCT.HammerStamp.ActionName()} Feature", $"Add {PCT.HammerStamp.ActionName()} when under the effect of {PCT.Buffs.HammerTime.StatusName()}.");
             }
 
+            if (preset is CustomComboPreset.PCT_Adv_Opener)
+            {
+                UserConfig.DrawHorizontalRadioButton(PCT.Config.PCT_Advanced_OpenerSelection, "Standard Opener", "Uses Standard Opener from the balance.", 0);
+                UserConfig.DrawHorizontalRadioButton(PCT.Config.PCT_Advanced_OpenerSelection, "Late Hammer", "Uses claw at the end.", 1);
+            }
+
             #endregion
             // ====================================================================================
             #region PALADIN
